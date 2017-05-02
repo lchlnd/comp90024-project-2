@@ -4,7 +4,7 @@ from textblob import TextBlob
 class tweetAnalyzer:
     def __init__(self, raw_tweet):
         self.raw_tweet = raw_tweet
-        self.blob = TextBlob(raw_tweet)
+        self.blob = TextBlob(raw_tweet["text"])
     #The polarity score is a float within the range [-1.0, 1.0]
     def analyzeSentiment(self):
         return self.blob.sentiment.polarity
