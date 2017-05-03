@@ -97,7 +97,8 @@ if __name__ == "__main__":
         sys.exit(2)
     except Exception:
         print("data base already exist")
-        sys.exit(2)
+        db = couch['db_test']  # existing
+        #sys.exit(2)
 
 
 
