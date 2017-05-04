@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Melbourne Tweet Analysis</title>
+        <link rel="stylesheet" type="text/css" href="styles.css">
+    </head>
+    <body>
+        <h3>Tweet Sentiment vs Select Aurin Data per SA2</h3>
+        <div id="map"></div>
+        <div id="help">
+          <FORM NAME="checks">
+          <b>Visualise or Correlate</b>
+
+            <INPUT TYPE="checkbox" NAME="income"
+            onClick="return refreshDataNew()"> Income
+
+            <INPUT TYPE="checkbox" NAME="smoker"
+            onClick="return refreshDataNew()"> Smokers
+
+            <INPUT TYPE="checkbox" NAME="overweight"
+            onClick="return refreshDataNew()"> Overweight
+
+            <INPUT TYPE="checkbox" NAME="obese"
+            onClick="return refreshDataNew()"> Obese
+
+            <INPUT TYPE="checkbox" NAME="overweightAndObese"
+            onClick="return refreshDataNew()"> Overweight and Obese
+
+          </FORM>
+        </div>
+        <div>
+          <p>COMP90049 - Cluster and Cloud Computing - Team 25</p>
+        </div>
+
+        <script src="map.js"></script>
+        <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDI01HgcnBBM0o7scMFfVT3BTEoGMFXvM8&callback=initMap">
+        </script>
+    </body>
+</html>
