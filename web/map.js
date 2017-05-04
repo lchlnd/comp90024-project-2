@@ -6,8 +6,16 @@ const properties = {
   income: 'Average_taxable_income'
 };
 
-var MIN_INCOME = 999999
-var MAX_INCOME = 0
+// Used to store range of aurin data sets.
+var aurin_ranges = {
+    income: {
+        max: 0,
+        min: 999999
+    }
+}
+
+// Current dataset to display.
+var display = null
 
 /* Load map centred around Melbourne */
 var map;
@@ -34,16 +42,17 @@ function initMap() {
         e.feature.getGeometry().forEachLatLng(function(path) {
             bounds.extend(path);
         });
-
-        // Store.
         e.feature.setProperty(properties.bounds, bounds);
 
-        income = e.feature.getProperty(properties.income);
-        if (income > MAX_INCOME) {
-            MAX_INCOME = income;
-        }
-        if (income < MIN_INCOME && income != null) {
-            MIN_INCOME = income;
+        // Update ranges for aurin values.
+        for (var key in aurin_ranges) {
+            value = e.feature.getProperty(properties[key]);
+            if (value > aurin_ranges[key].max) {
+                aurin_ranges[key].max = value;
+            }
+            if (value < aurin_ranges[key].min && value != null) {
+                aurin_ranges[key].min = value;
+            }
         }
     });
 
@@ -72,15 +81,19 @@ function generateMapStyle(f) {
     var strokeWeight = 1
     var fillOpacity = 0.5
 
-    income = f.getProperty(properties.income);
+    if (display) {
+        value = f.getProperty(properties[display]);
 
-    // Normalise and get color representation.
-    income_norm = normalise(income, MAX_INCOME, MIN_INCOME);
-    if (income_norm <= 0) {
+        // Normalise and get color representation.
+        norm = normalise(value, aurin_ranges[display].max, aurin_ranges[display].min);
+        if (norm <= 0) {
+            fillOpacity = 0;
+        }
+        norm *= 100;
+        var fillColor = numberToColorHsl(norm);
+    } else {
         fillOpacity = 0;
     }
-    income_norm *= 100;
-    var fillColor = numberToColorHsl(income_norm);
 
     return {
         strokeColor: strokeColor,
@@ -107,7 +120,8 @@ function generateInfoWindowContent(f) {
     return str
 }
 
-function refreshData() {
+function refreshData(new_display) {
+    display = new_display;
     map.data.setStyle(generateMapStyle);
 }
 
