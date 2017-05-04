@@ -3,19 +3,42 @@ const properties = {
   id: 'SA2_Code_2011',
   bounds: 'bounds',
   name: 'SA2_Name_2011',
-  income: 'Average_taxable_income'
+  income: 'Average_taxable_income',
+  overweight: 'ovrwght_p_me_2_rate_3_11_7_13',
+  obese: 'obese_p_me_2_rate_3_11_7_13',
+  smoker: 'smokers_me_2_rate_3_11_7_13'
 };
+
+const JSON_FILE = 'data/sa2_dump.json';
 
 // Used to store range of aurin data sets.
 var aurin_ranges = {
     income: {
         max: 0,
         min: 999999
+    },
+    smoker: {
+        max: 0,
+        min: 100
+    },
+    overweight: {
+        max: 0,
+        min: 100
+    },
+    obese: {
+        max: 0,
+        min: 100
+    },
+    overweightAndObese: {
+        max: 0,
+        min: 100
     }
 }
 
 // Current dataset to display.
-var display = null
+var display = []
+
+var storedCheckCount = 0
 
 /* Load map centred around Melbourne */
 var map;
@@ -33,7 +56,7 @@ function initMap() {
     });
 
     // Load map overlay.
-    map.data.loadGeoJson('data/sa2.json');
+    map.data.loadGeoJson(JSON_FILE);
 
     // Store extra info for bounds, mins and maxs.
     google.maps.event.addListener(map.data, 'addfeature', function (e) {
@@ -46,7 +69,14 @@ function initMap() {
 
         // Update ranges for aurin values.
         for (var key in aurin_ranges) {
-            value = e.feature.getProperty(properties[key]);
+            if (key == "overweightAndObese") {
+                value = e.feature.getProperty(properties.overweight) + e.feature.getProperty(properties.obese);
+                if (value == 0) {
+                    continue;
+                }
+            } else {
+                value = e.feature.getProperty(properties[key]);
+            }
             if (value > aurin_ranges[key].max) {
                 aurin_ranges[key].max = value;
             }
@@ -81,18 +111,35 @@ function generateMapStyle(f) {
     var strokeWeight = 1
     var fillOpacity = 0.5
 
-    if (display) {
-        value = f.getProperty(properties[display]);
 
-        // Normalise and get color representation.
-        norm = normalise(value, aurin_ranges[display].max, aurin_ranges[display].min);
-        if (norm <= 0) {
+    // Do not overaly.
+    if (display.length == 0) {
+        fillOpacity = 0;
+    // Overalay a single feature.
+    } else if (display.length == 1) {
+        disp = display[0]
+        if (disp) {
+            norm = getNormalisedValue(f, disp);
+            if (norm < 0 || norm > 100) {
+                fillOpacity = 0;
+            }
+            var fillColor = numberToColorHsl(norm);
+        } else {
             fillOpacity = 0;
         }
-        norm *= 100;
-        var fillColor = numberToColorHsl(norm);
-    } else {
-        fillOpacity = 0;
+    // Correlate two features.
+    } else if (display.length == 2) {
+        disp1 = display[0]
+        disp2 = display[1]
+
+        norm1 = getNormalisedValue(f, disp1);
+        norm2 = getNormalisedValue(f, disp2);
+
+        if (norm1 < 0 || norm2 > 100 || norm2 < 0 || norm2 > 100) {
+            fillOpacity = 0;
+        }
+
+        var fillColor = numberToColorHsl(correlate(norm1, norm2));
     }
 
     return {
@@ -103,12 +150,42 @@ function generateMapStyle(f) {
     }
 }
 
+function getNormalisedValue(f, disp) {
+    if (disp == "overweightAndObese") {
+        overweight = f.getProperty(properties.overweight);
+        obese = f.getProperty(properties.obese);
+        value = 0;
+        if (overweight != null && obese != null) {
+            value = overweight + obese;
+        }
+    } else {
+        value = f.getProperty(properties[disp]);
+    }
+
+    // Normalise and get color representation.
+    norm = normalise(value, aurin_ranges[disp].max, aurin_ranges[disp].min);
+
+    // Flip all but income.
+    if (disp != "income") {
+        norm = 1 - norm;
+    }
+
+    return norm * 100;
+}
+
 /* Generate content for info window -- Data for each SA2 (feature) */
 function generateInfoWindowContent(f) {
     // Format values for display.
     income = f.getProperty(properties.income)
     if (income) {
-        income = "$" + income.toFixed(0)
+        income = "$" + income.toFixed(0);
+    }
+    smokers = f.getProperty(properties.smoker).toFixed(2)
+    overweight = f.getProperty(properties.overweight).toFixed(2)
+    obese = f.getProperty(properties.obese).toFixed(2)
+    oo = null;
+    if (obese != null && overweight != null) {
+        oo = (parseFloat(obese) + parseFloat(overweight)).toFixed(2)
     }
     name = f.getProperty(properties.name)
 
@@ -116,12 +193,78 @@ function generateInfoWindowContent(f) {
     str += "<h4>" + name + "</h4>"
     str += "<table>"
     str += "<tr><td> Avg. taxable income: </td><td>" + income + "</td></tr>"
+    str += "<tr><td> Smokers per 100 people: </td><td>" + smokers + "</td></tr>"
+    str += "<tr><td> Overweight per 100 people: </td><td>" + overweight + "</td></tr>"
+    str += "<tr><td> Obese per 100 people: </td><td>" + obese + "</td></tr>"
+    str += "<tr><td> Combined overweight and obese: </td><td>" + oo + "</td></tr>"
     str += "</table>"
     return str
 }
 
+function correlate(n1, n2) {
+    return 100 - Math.abs(n1-n2);
+}
+
 function refreshData(new_display) {
     display = new_display;
+    map.data.setStyle(generateMapStyle);
+}
+
+function refreshDataNew() {
+    var checkCount = 0
+    disp = []
+
+    if (document.checks.income.checked) {
+        checkCount += 1
+    }
+
+    if (document.checks.smoker.checked) {
+        checkCount += 1
+    }
+
+    if (document.checks.overweight.checked) {
+        checkCount += 1
+    }
+
+    if (document.checks.obese.checked) {
+        checkCount += 1
+    }
+
+    if (document.checks.overweightAndObese.checked) {
+        checkCount += 1
+    }
+
+    if (checkCount == 3) {
+        return false;
+    }
+
+    if (document.checks.income.checked) {
+        checkCount += 1
+        disp.push("income")
+    }
+
+    if (document.checks.smoker.checked) {
+        checkCount += 1
+        disp.push("smoker")
+    }
+
+    if (document.checks.overweight.checked) {
+        checkCount += 1
+        disp.push("overweight")
+    }
+
+    if (document.checks.obese.checked) {
+        checkCount += 1
+        disp.push("obese")
+    }
+
+    if (document.checks.overweightAndObese.checked) {
+        checkCount += 1
+        disp.push("overweightAndObese")
+    }
+
+    display = disp;
+
     map.data.setStyle(generateMapStyle);
 }
 
