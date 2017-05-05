@@ -1,0 +1,13 @@
+---
+- hosts: node2
+  vars:
+      http_port: 80
+      max_clients: 200
+  remote_user: root
+  tasks:
+  - name: install pip 3
+    apt: name=python3-pip
+  - name: install couchdb
+    apt: name=couchdb
+  - name: pip3 install tweepy
+    command: pip3 install tweepy couchdb
