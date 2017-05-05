@@ -6,7 +6,6 @@ Raw tweets are stored in specified couchDB databse.
 
 import logging
 import tweepy
-import json
 import couchdb
 
 
