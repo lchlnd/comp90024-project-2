@@ -1,0 +1,4 @@
+Command for running script. Note the team25.key should be in the dir of calling
+
+ansible-playbook database.yml -i ans.ini -sudo
+
