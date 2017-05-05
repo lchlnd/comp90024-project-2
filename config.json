@@ -22,5 +22,6 @@
       "145.4013",
       "-37.5113"
    ],
-  "DatabaseName":"raw_tweets"
+   "Geocode": "-37.9994,144.5937,100km",
+   "DatabaseName":"raw_tweets"
 }
