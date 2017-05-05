@@ -65,7 +65,7 @@ if __name__ == "__main__":
         sys.exit(2)
     except Exception:
         print("database does not exist")
-        sys.exit(2)
+        db = couch.create('db_test')
 
     # Replace the API_KEY and API_SECRET with your application's key and secret.
     auth = tweepy.AppAuthHandler(ckey, csecret)
@@ -121,15 +121,15 @@ if __name__ == "__main__":
                 id = tweet.id
                 text = tweet.text
                 location = tweet.coordinates
-                tweets = tweet._json
 
-                if tweet.coordinates:
-                    doc = {
-                        'id': id,
-                        'tweet': tweets
-                    }
+                json = tweet._json
 
-                    db.save(doc)
+                if tweet.coordinates or tweet.place:
+                    json['_id'] = str(json['id'])
+                    try:
+                        db.save(json)
+                    except couchdb.http.ResourceConflict:
+                        print("ignore duplicated tweet")
 
             tweetCount += len(new_tweets)
             print("Downloaded {0} tweets".format(tweetCount))
