@@ -6,7 +6,7 @@ View documentation at http://textblob.readthedocs.io/en/dev/install.html
 from textblob import TextBlob
 
 
-class tweetAnalyzer:
+class TweetAnalyzer:
     """Class to analyse sentiment of text."""
 
     def __init__(self, raw_tweet):
