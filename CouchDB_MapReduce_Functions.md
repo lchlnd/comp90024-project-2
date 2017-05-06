@@ -2,7 +2,7 @@
 
 ### Map ###
 
-function (doc) {
+function (doc) \r\n{
   emit(doc.code, doc.sentiment);
 }
 
