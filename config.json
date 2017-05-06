@@ -1,9 +1,27 @@
 {
-
-  "ConsumerKey":"ALNwJ7Unkb2WURTSDqA9o7Aan",
-  "ConsumerSecret":"1vibUNGiegOhQa9WV1FzNGJdFFCyAclnOCna13sFGO9DMPhEWa",
-  "AccessToken":"622442315-Mw1YibQ8XrkB0HvwNblH301Q5uSqV235yzR2P4An",
-  "AccessTokenSecret":"HNsNN5FYjjvWhK2VVVbnnKmttKePC0qp9JSbtgKYJxeGV",
-  "Servers":["http://127.0.0.1:5984"],
-  "Coordinates":["144.5937","-37.9994","145.4013","-37.5113"]
+   "Authentication":[
+      {
+         "ConsumerKey":"ALNwJ7Unkb2WURTSDqA9o7Aan",
+         "ConsumerSecret":"1vibUNGiegOhQa9WV1FzNGJdFFCyAclnOCna13sFGO9DMPhEWa",
+         "AccessToken":"622442315-Mw1YibQ8XrkB0HvwNblH301Q5uSqV235yzR2P4An",
+         "AccessTokenSecret":"HNsNN5FYjjvWhK2VVVbnnKmttKePC0qp9JSbtgKYJxeGV"
+      },
+      {
+         "ConsumerKey":"Hncys00QR9tuv5WeukqaYOQw5",
+         "ConsumerSecret":"rvTtyOsCgxOcxbFxpFnkkuA3yaUiPq3WDY9lDs6uBh48aiuq1h",
+         "AccessToken":"854655228418768896-G4Wp5hdc28teH49tq5i6HHNrTsJfQF1",
+         "AccessTokenSecret":"sTuyOGGEQZHP4ErIagGVXr2HsfOHNU5wN7bol3CuBroqK"
+      }
+   ],
+   "Servers":[
+      "http://127.0.0.1:5984"
+   ],
+   "Coordinates":[
+      "144.5937",
+      "-37.9994",
+      "145.4013",
+      "-37.5113"
+   ],
+   "Geocode": "-37.9994,144.5937,100km",
+   "DatabaseName":"raw_tweets"
 }
