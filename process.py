@@ -7,6 +7,7 @@ https://gis.stackexchange.com/questions/208546/check-if-a-point-falls-within-a-m
 """
 
 import couchdb
+from couchdb import design
 import logging
 import sys
 import fiona
@@ -22,15 +23,26 @@ DB_ADDRESS = "http://127.0.0.1:5984"
 GEO_JSON = "web/data/sa2_dump.json"
 
 
+def view_unprocessed_raw(db):
+    """Create a view of all unprocessed tweets in raw tweets db."""
+    map_fnc = """function(doc) {
+        if (!doc.processed) {
+            emit(doc._id, null);
+        }
+    }"""
+    view = design.ViewDefinition(
+        'raw_tweets', 'unprocessed', map_fnc
+    )
+    view.sync(db)
+
+
 def tag_tweets(db_raw, db_pro, multipol):
     """Tag raw tweets with SA2 and store in processed db."""
-    for id in db_raw:
+    results = db_raw.view('raw_tweets/unprocessed')
+    for res in results:
 
-        # Hack way to not double process.
-        if id in db_pro:
-            continue
-
-        # Get tweet.
+        # Get tweet id.
+        id = res['id']
         tweet = db_raw[id]
 
         # Look for exact coordinates in tweet.
@@ -56,6 +68,11 @@ def tag_tweets(db_raw, db_pro, multipol):
                         'text': tweet['text'], 'sentiment': sentiment
                         }
                     db_pro.save(stored_tweet)
+
+        # Tag tweet as processed.
+        doc = db_raw.get(id)
+        doc['processed'] = True
+        db_raw.save(doc)
 
 
 def average_bounding_box(box):
@@ -91,6 +108,7 @@ if __name__ == "__main__":
 
     # Tag and store tweets.
     while True:
+        view_unprocessed_raw(db_raw)
         tag_tweets(db_raw, db_pro, multipol)
         time.sleep(1200)
 
