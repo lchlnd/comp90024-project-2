@@ -1,15 +1,23 @@
 ---
 - hosts: node1
-  vars:
-      http_port: 80
-      max_clients: 200
-  remote_user: root
+  gather_facts: no
   tasks:
-  - name: install pip 3
-    apt:
-      name: python3-pip
-      update_cache: yes
-  - name: install couchdb
-    apt: name=couchdb
-  - name: pip3 install tweepy
-    command: pip3 install tweepy couchdb
+  - name: Wait for SSH port open
+    local_action: wait_for port=22 host={{ansible_ssh_host}} delay=10
+  #- local_action: wait_for port=22 host="{{ ansible_ssh_host | default(inventory_hostname) }}" search_regex=OpenSSH delay=10
+  - name: Install pip3, tmux, libgeos-dev
+    become: true
+    apt: name={{item}} state=latest update_cache=yes
+    with_items:
+      - python3-pip
+      - tmux
+      - libgeos-dev
+  - name: Install fiona, shapely, couchdb, textblob, tweepy
+    become: true
+    command: pip3 install {{item}}
+    with_items:
+      - fiona
+      - shapely
+      - couchdb
+      - textblob
+      - tweepy

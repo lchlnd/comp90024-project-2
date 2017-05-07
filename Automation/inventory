@@ -1,4 +1,4 @@
-node1 ansible_ssh_host=115.146.95.254
+node1 ansible_ssh_host=115.146.90.47
 [all_servers]
 node1
 [all_servers:vars]
