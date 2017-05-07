@@ -16,10 +16,10 @@ from tweetAnalyzer import TweetAnalyzer
 from shapely.geometry import shape, Point
 
 
-DB_LOC = "locations"
-DB_RAW = "raw_tweets"
-DB_PRO = "processed_tweets"
-DB_ADDRESS = "http://127.0.0.1:5984"
+DB_RAW_NAME = "raw_tweets"
+DB_PRO_NAME = "processed_tweets"
+DB_RAW_ADDRESS = "http://130.56.253.44:5984"
+DB_PRO_ADDRESS = "http://127.0.0.1:5984"
 GEO_JSON = "web/data/sa2_dump.json"
 
 
@@ -47,7 +47,8 @@ def tag_tweets(db_raw, db_pro, multipol):
 
         # Look for exact coordinates in tweet.
         if tweet['coordinates']:
-            coords = tweet['coordinates']
+            raw = tweet['coordinates']
+            coords = tuple(raw['coordinates'])
         # Get the midpoint of place.
         elif tweet['place']:
             coords = average_bounding_box(
@@ -68,6 +69,9 @@ def tag_tweets(db_raw, db_pro, multipol):
                         'text': tweet['text'], 'sentiment': sentiment
                         }
                     db_pro.save(stored_tweet)
+                    break
+        else:
+            logging.info("No coordinates found.")
 
         # Tag tweet as processed.
         doc = db_raw.get(id)
@@ -89,26 +93,29 @@ def average_bounding_box(box):
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
     # Read locations into memory.
     multipol = fiona.open(GEO_JSON)
 
     # Get raw tweets db.
-    couch = couchdb.Server(DB_ADDRESS)
+    couch_raw = couchdb.Server(DB_RAW_ADDRESS)
     try:
-        db_raw = couch[DB_RAW]
+        db_raw = couch_raw[DB_RAW_NAME]
     except Exception:
         logging.error("Raw tweets DB does not exist.")
         sys.exit(2)
 
     # Get processed tweets db.
-    if DB_PRO in couch:
-        db_pro = couch[DB_PRO]
+    couch_pro = couchdb.Server(DB_PRO_ADDRESS)
+    if DB_PRO_NAME in couch_pro:
+        db_pro = couch_pro[DB_PRO_NAME]
     else:
-        db_pro = couch.create(DB_PRO)
+        db_pro = couch_pro.create(DB_PRO_NAME)
 
     # Tag and store tweets.
     while True:
         view_unprocessed_raw(db_raw)
         tag_tweets(db_raw, db_pro, multipol)
+        logging.info("Tweets processed, sleeping...")
         time.sleep(1200)
 
