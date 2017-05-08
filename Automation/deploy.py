@@ -43,5 +43,6 @@ if __name__ == "__main__":
         security_group_names.append(security_grp['name'])
 
     """Create instance/s"""
-    ec2_conn.run_instances(image_id=jconfig['image_id'], placement=jconfig['placement'], key_name=jconfig['key']['name'],
+    reservation = ec2_conn.run_instances(max_count=num_instances, image_id=jconfig['image_id'], placement=jconfig['placement'], key_name=jconfig['key']['name'],
                        instance_type=jconfig['instance_type'], security_groups=security_group_names)
+
