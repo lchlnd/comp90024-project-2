@@ -1,0 +1,21 @@
+{
+  "region":{
+    "name":"melbourne",
+    "endpoint":"nova.rc.nectar.org.au"
+  },
+  "credentials":{
+    "access_key":"525b7076eb3b4d91929e573c44586d02",
+    "secret_key":"bb1e1c0798ca4a57872725dc0c8a27c7"
+  },
+  "placement":"melbourne-qh2",
+  "image_id":"ami-86f4a44c",
+  "key":{
+    "name":"team25"
+  },
+  "instance_type":"m2.small",
+  "security_groups":[
+    {"name":"ssh"},
+    {"name":"default"},
+    {"name":"http"}
+  ]
+}
