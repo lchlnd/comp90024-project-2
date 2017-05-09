@@ -105,6 +105,8 @@
          accept_hostkey=yes
          key_file=team25.key
          update=no
+  - name: Run harvester
+    command: python3 harvesterStream.py
 
 - hosts: searcher
   gather_facts: no
@@ -138,5 +140,7 @@
          accept_hostkey=yes
          key_file=team25.key
          update=no
+  - name: Run harvester
+    command: python3 harvesterSearch.py
 
 
