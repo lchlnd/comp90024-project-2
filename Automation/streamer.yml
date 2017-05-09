@@ -1,0 +1,35 @@
+---
+- hosts: streamer
+  gather_facts: no
+  tasks:
+  - name: Wait for SSH port open
+    local_action: wait_for port=22 host={{ansible_ssh_host}} delay=10
+  - name: Install pip3, tmux, libgeos-dev, git
+    become: true
+    apt: name={{item}} state=latest update_cache=yes
+    with_items:
+      - python3-pip
+      - tmux
+      - libgeos-dev
+      - git
+  - name: Install fiona, shapely, couchdb, textblob, tweepy
+    become: true
+    command: pip3 install {{item}}
+    with_items:
+      - fiona
+      - shapely
+      - couchdb
+      - textblob
+      - tweepy
+  - name: Copy SSH private key file
+    copy: src=team25.key
+          dest=~/
+          mode=0400
+  - name: Checkout application from Github
+    git: repo=git@github.com:lchlnd/comp90024-project-2.git
+         dest=~/src/
+         accept_hostkey=yes
+         key_file=team25.key
+         update=no
+  - name: Run harvester
+    command: python3 harvesterStream.py
