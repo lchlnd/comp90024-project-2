@@ -18,7 +18,7 @@ from shapely.geometry import shape, Point
 
 DB_RAW_NAME = "raw_tweets"
 DB_PRO_NAME = "processed_tweets"
-DB_RAW_ADDRESS = "http://130.56.253.44:5984"
+DB_RAW_ADDRESS = "http://127.0.0.1:15984"
 DB_PRO_ADDRESS = "http://127.0.0.1:5984"
 GEO_JSON = "web/data/sa2_dump.json"
 
