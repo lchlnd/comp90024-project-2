@@ -22,6 +22,7 @@ INVENTORY_FILE_PATH = "inventory"
 
 def create_inventory_file(ec2_conn, reservation, type, ip_list, ansible_ssh_user, ansible_ssh_key):
     """Creates inventory file for ansible to run.
+
         Args:
             ec2_conn:
             reservation:
@@ -29,6 +30,7 @@ def create_inventory_file(ec2_conn, reservation, type, ip_list, ansible_ssh_user
             ip_list:
             ansible_ssh_user:
             ansible_ssh_key:
+
     """
     inventory_file = open(INVENTORY_FILE_PATH, 'w+')
     if type == 'site':
@@ -68,8 +70,10 @@ def create_inventory_file(ec2_conn, reservation, type, ip_list, ansible_ssh_user
 
 def orchestrate(type):
     """Orchestrate required system software by executing ansible playbooks.
+
         Args:
             type:
+
     """
     if type == 'streamer':
         print ('ansible-playbook streamer.yml -i inventory')
@@ -89,8 +93,10 @@ def orchestrate(type):
 
 def create_ip_list(reservation):
     """Create a list containing IP addresses of created instances.
+
         Args:
             reservation:
+
     """
     ip_list = list()
     for instance in reservation.instances:
@@ -101,12 +107,14 @@ def create_ip_list(reservation):
 
 def check_cli_argument():
     """Check command line arguments and return configuration parameters in a json object and a list containing all system types.
+
         Args:
             reservation:
 
         Returns:
             jconfig:
             sys_type_list:
+
     """
     if len(sys.argv) != NUM_ARGS:
         logging.error(
