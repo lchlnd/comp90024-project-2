@@ -1,7 +1,9 @@
 """
 Main script for dynamic deployment.
-Usage: python3 <deploy.py> <config.json> <system_type> <number_of_instances>
-Where:
+Usage: python3 <deploy.py> <config> <system_type> <number_of_instances>
+Where: <config>              -- configuration file
+       <system_type>         -- streamer / searcher / tweetdb / webserver / site
+       <number_of_instances> -- number of instances to create. This must be 4 for system type 'site'.
 """
 import re
 import sys
@@ -19,6 +21,17 @@ PATH = "/services/Cloud"
 INVENTORY_FILE_PATH = "inventory"
 
 def create_inventory_file(ec2_conn, reservation, type, ip_list, ansible_ssh_user, ansible_ssh_key):
+    """Creates inventory file for ansible to run.
+
+        Args:
+            ec2_conn:
+            reservation:
+            type:
+            ip_list:
+            ansible_ssh_user:
+            ansible_ssh_key:
+
+    """
     inventory_file = open(INVENTORY_FILE_PATH, 'w+')
     if type == 'site':
         inventory_file.write('[tweetdb]\n')
@@ -56,6 +69,12 @@ def create_inventory_file(ec2_conn, reservation, type, ip_list, ansible_ssh_user
     inventory_file.close()
 
 def orchestrate(type):
+    """Orchestrate required system software by executing ansible playbooks.
+
+        Args:
+            type:
+
+    """
     if type == 'streamer':
         print ('ansible-playbook streamer.yml -i inventory')
         #os.system('ansible-playbook streamer.yml -i inventory')
@@ -72,7 +91,13 @@ def orchestrate(type):
         print ('ansible-playbook site.yml -i inventory')
         #os.system('ansible-playbook site.yml -i inventory')
 
-def get_ip_list(reservation):
+def create_ip_list(reservation):
+    """Create a list containing IP addresses of created instances.
+
+        Args:
+            reservation:
+
+    """
     ip_list = list()
     for instance in reservation.instances:
         while (instance.update() != "running"):
@@ -81,6 +106,16 @@ def get_ip_list(reservation):
     return ip_list
 
 def check_cli_argument():
+    """Check command line arguments and return configuration parameters in a json object and a list containing all system types.
+
+        Args:
+            reservation:
+        
+        Returns:
+            jconfig:
+            sys_type_list:
+
+    """
     if len(sys.argv) != NUM_ARGS:
         logging.error(
             'invalid number of arguments: <deploy.py> <config.json> <system_type> <number_of_instances>'
@@ -154,7 +189,7 @@ if __name__ == "__main__":
                                              security_groups=jconfig['system_types'][sys_type_list.index(sys_type)]['security_groups'])
 
         """Get a list of running instances we've created"""
-        ip_list = get_ip_list(reservation)
+        ip_list = create_ip_list(reservation)
     print('IP addresses of created instances: ' + ', '.join(ip_list))
     """Create inventory file"""
     print ('Creating inventory file')
