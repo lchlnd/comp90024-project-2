@@ -30,6 +30,6 @@
          dest=~/src/
          accept_hostkey=yes
          key_file=team25.key
-         update=no
-  - name: Run harvester
-    command: python3 harvesterSearch.py
+         update=yes
+  - name: Run searcher harvester
+    command: python3 harvester config.json searcher

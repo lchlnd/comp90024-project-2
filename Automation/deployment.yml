@@ -1,5 +1,5 @@
 ---
-- include: webserver.yml
 - include: tweetdb.yml
 - include: searcher.yml
 - include: streamer.yml
+- include: webserver.yml

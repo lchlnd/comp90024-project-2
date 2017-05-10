@@ -16,10 +16,10 @@ def create_inventory(instances):
             while(instances[i].update() != "running"):
                 time.sleep(5)
             f.write("node%s ansible_ssh_host=%s"%(i+1, instances[i].private_ip_address) + os.linesep)
-        f.write("[all_servers]" + os.linesep)
+        f.write("[tweetdb]" + os.linesep)
         for i in range(len(instances)):
             f.write("node%s"%(i+1) + os.linesep)
-        f.write("[all_servers:vars]" + os.linesep)
+        f.write("[all:vars]" + os.linesep)
         f.write("ansible_ssh_user=ubuntu" + os.linesep)
         f.write("ansible_ssh_private_key_file=team25.key" + os.linesep)
 
@@ -40,7 +40,7 @@ def create_instances(n_instance = 1):
     #web.authorize('tcp', 80, 80, '0.0.0.0/0')
     for i in range(n_instance):
         try:
-            instances.append(ec2_conn.run_instances(image_id='ami-86f4a44c', placement='melbourne-qh2', key_name='team25', instance_type='m2.small', security_groups=['ssh','default','http']).instances[0])
+            instances.append(ec2_conn.run_instances(image_id='ami-86f4a44c', placement='melbourne-qh2', key_name='team25', instance_type='m2.small', security_groups=['ssh','default','http','couchdb']).instances[0])
         except boto.exception._EC2Error as e:
             print(e)
 
@@ -58,7 +58,7 @@ def show_volumns():
         print(v.zone)
 
 def create_volumn():
-    return ec2_conn.create_volume(50, "melbourne-qh2")
+    return ec2_conn.create_volume(20, "melbourne-qh2")
 
 def attach_volumn(vol_id, istance_id):
     ec2_conn.attach_volume(vol_id, istance_id, "/dev/vdc")
@@ -67,21 +67,23 @@ def create_snapshot(vol_id):
     return ec2_conn.create_snapshot(vol_id, 'Mysnapshot')
 
 region = RegionInfo(name='melbourne', endpoint='nova.rc.nectar.org.au')
-ec2_conn = boto.connect_ec2(aws_access_key_id='525b7076eb3b4d91929e573c44586d02', aws_secret_access_key='bb1e1c0798ca4a57872725dc0c8a27c7', \
+ec2_conn = boto.connect_ec2(aws_access_key_id='9f47bb9fb35340b8bc997f5b9a26bf69', aws_secret_access_key='6c77c2d31008479688136323f7ddd797', \
                             is_secure=True, region=region, port=8773, path='/services/Cloud', validate_certs=False)
 
 # read number of instances from input
 # n_instance = int(input('Enter number of instance to create: '))
 #
 #
-# # create n_instance instances
+# # create n_instance instanceslsblk
 create_instances()
 create_inventory(instances)
 
 #new_vol = create_volumn()
 #attach_volumn(new_vol.id, instances[0].id)
+#attach_volumn("vol-caa86a45", "i-794184d9")
+
 #create_snapshot(new_vol.id)
-execute_command("ansible-playbook database.yml -i inventory")
+execute_command("ansible-playbook tweetdb.yml -i inventory")
 
 #show_list_image()
 

@@ -30,6 +30,6 @@
          dest=~/src/
          accept_hostkey=yes
          key_file=team25.key
-         update=no
-  - name: Run harvester
-    command: python3 harvesterStream.py
+         update=yes
+  - name: Run stream harvester
+    command: python3 harvester.py config.json stream

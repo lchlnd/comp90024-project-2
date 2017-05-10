@@ -33,6 +33,8 @@
          update=no
   - name: Copy web to root folder
     become: true
-    command: cp -r ./src/web/ /var/www/html/
+    shell: cd ./src/web/; cp -r * /var/www/html/
   - name: start apache2 service
     service: name=apache2 state=started
+  - debug:
+      msg: "Access web application as {{ ansible_ssh_host }}"
