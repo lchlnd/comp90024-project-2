@@ -127,7 +127,7 @@ function get(yourUrl){
 
 // Loads the tweets from provided DB, stores in global lookup object.
 function loadTweets() {
-    tweet_obj = JSON.parse(get('http://localhost:15984/processed_tweets/_design/sentiment_analysis/_view/sentiment_analysis?reduce=true&group=true'));
+    tweet_obj = JSON.parse(get('http://localhost:5984/processed_tweets/_design/sentiment_analysis/_view/sentiment_analysis?reduce=true&group=true'));
     for (var i = 0; i < tweet_obj.rows.length; i++) {
         data = tweet_obj.rows[i]
         tweet_lookup[data.key] = data.value;
