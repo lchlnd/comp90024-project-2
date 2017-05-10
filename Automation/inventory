@@ -1,5 +1,5 @@
 [tweetdb]
-tweetdb ansible_ssh_host=115.146.86.19
+tweetdb ansible_ssh_host=115.146.86.197
 [streamer]
 streamer ansible_ssh_host=0.0.0.0
 [searcher]
