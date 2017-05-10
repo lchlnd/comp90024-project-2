@@ -222,7 +222,6 @@ function getNormalisedValue(f, disp) {
     if (disp != "income" && disp != "tweetCount" && disp != "tweetPolarity") {
         norm = 1 - norm;
     }
-    console.log(norm)
 
     return norm * 100;
 }
