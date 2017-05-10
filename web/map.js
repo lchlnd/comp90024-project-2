@@ -12,10 +12,10 @@ const properties = {
 const JSON_FILE = 'data/sa2_dump.json';
 
 // Used to store range of aurin data sets.
-var aurin_ranges = {
+var data_ranges = {
     income: {
         max: 0,
-        min: 999999
+        min: Number.MAX_SAFE_INTEGER
     },
     smoker: {
         max: 0,
@@ -32,13 +32,22 @@ var aurin_ranges = {
     overweightAndObese: {
         max: 0,
         min: 100
+    },
+    tweetCount: {
+        max: 0,
+        min: Number.MAX_SAFE_INTEGER
+    },
+    tweetPolarity: {
+        max: -1,
+        min: 1
     }
 }
 
 // Current dataset to display.
 var display = []
 
-var storedCheckCount = 0
+// Store data from db.
+var tweet_lookup = {}
 
 /* Load map centred around Melbourne */
 var map;
@@ -58,6 +67,9 @@ function initMap() {
     // Load map overlay.
     map.data.loadGeoJson(JSON_FILE);
 
+    // Load tweets, storing data in a global object.
+    loadTweets();
+
     // Store extra info for bounds, mins and maxs.
     google.maps.event.addListener(map.data, 'addfeature', function (e) {
         // Caluclate bounds.
@@ -68,7 +80,7 @@ function initMap() {
         e.feature.setProperty(properties.bounds, bounds);
 
         // Update ranges for aurin values.
-        for (var key in aurin_ranges) {
+        for (var key in data_ranges) {
             if (key == "overweightAndObese") {
                 value = e.feature.getProperty(properties.overweight) + e.feature.getProperty(properties.obese);
                 if (value == 0) {
@@ -77,11 +89,11 @@ function initMap() {
             } else {
                 value = e.feature.getProperty(properties[key]);
             }
-            if (value > aurin_ranges[key].max) {
-                aurin_ranges[key].max = value;
+            if (value > data_ranges[key].max) {
+                data_ranges[key].max = value;
             }
-            if (value < aurin_ranges[key].min && value != null) {
-                aurin_ranges[key].min = value;
+            if (value < data_ranges[key].min && value != null) {
+                data_ranges[key].min = value;
             }
         }
     });
@@ -103,6 +115,37 @@ function initMap() {
 
     // Setup styles.
     map.data.setStyle(generateMapStyle);
+}
+
+/* http://stackoverflow.com/questions/2499567/how-to-make-a-json-call-to-a-url/2499647#2499647 */
+function get(yourUrl){
+    var Httpreq = new XMLHttpRequest(); // a new request
+    Httpreq.open("GET",yourUrl,false);
+    Httpreq.send(null);
+    return Httpreq.responseText;
+}
+
+// Loads the tweets from provided DB, stores in global lookup object.
+function loadTweets() {
+    tweet_obj = JSON.parse(get('http://localhost:15984/processed_tweets/_design/sentiment_analysis/_view/sentiment_analysis?reduce=true&group=true'));
+    for (var i = 0; i < tweet_obj.rows.length; i++) {
+        data = tweet_obj.rows[i]
+        tweet_lookup[data.key] = data.value;
+        count = data.value.count;
+        if (count < data_ranges.tweetCount.min) {
+            data_ranges.tweetCount.min = count
+        }
+        if (count > data_ranges.tweetCount.max) {
+            data_ranges.tweetCount.max = count
+        }
+        polarity = data.value.polarity;
+        if (polarity < data_ranges.tweetPolarity.min) {
+            data_ranges.tweetPolarity.min = polarity
+        }
+        if (polarity > data_ranges.tweetPolarity.max) {
+            data_ranges.tweetPolarity.max = polarity
+        }
+    }
 }
 
 /* Set style of map based on selected variable. */
@@ -151,6 +194,8 @@ function generateMapStyle(f) {
 }
 
 function getNormalisedValue(f, disp) {
+    code = f.getProperty(properties.id)
+    value = null
     if (disp == "overweightAndObese") {
         overweight = f.getProperty(properties.overweight);
         obese = f.getProperty(properties.obese);
@@ -159,16 +204,25 @@ function getNormalisedValue(f, disp) {
             value = overweight + obese;
         }
     } else {
-        value = f.getProperty(properties[disp]);
+        if (disp == "tweetCount") {
+            value = tweet_lookup[code] ? tweet_lookup[code].count : null
+        } else if (disp == "tweetPolarity") {
+            value = tweet_lookup[code] ? tweet_lookup[code].polarity : null
+        } else {
+            value = f.getProperty(properties[disp]);
+        }
+        if (value == null) {
+            value = Number.MIN_SAFE_INTEGER
+        }
     }
-
     // Normalise and get color representation.
-    norm = normalise(value, aurin_ranges[disp].max, aurin_ranges[disp].min);
+    norm = normalise(value, data_ranges[disp].max, data_ranges[disp].min);
 
     // Flip all but income.
-    if (disp != "income") {
+    if (disp != "income" && disp != "tweetCount" && disp != "tweetPolarity") {
         norm = 1 - norm;
     }
+    console.log(norm)
 
     return norm * 100;
 }
@@ -188,6 +242,15 @@ function generateInfoWindowContent(f) {
         oo = (parseFloat(obese) + parseFloat(overweight)).toFixed(2)
     }
     name = f.getProperty(properties.name)
+    code = f.getProperty(properties.id)
+    tweet_data = tweet_lookup[code]
+    count = null
+    polarity = null
+    if (tweet_data) {
+        count = tweet_data.count
+        polarity = tweet_data.polarity.toFixed(2)
+    }
+
 
     str = "<div>"
     str += "<h4>" + name + "</h4>"
@@ -197,6 +260,8 @@ function generateInfoWindowContent(f) {
     str += "<tr><td> Overweight per 100 people: </td><td>" + overweight + "</td></tr>"
     str += "<tr><td> Obese per 100 people: </td><td>" + obese + "</td></tr>"
     str += "<tr><td> Combined overweight and obese: </td><td>" + oo + "</td></tr>"
+    str += "<tr><td> Tweets: </td><td>" + count + "</td></tr>"
+    str += "<tr><td> Tweet Polarity </td><td>" + polarity + "</td></tr>"
     str += "</table>"
     return str
 }
@@ -234,6 +299,14 @@ function refreshDataNew() {
         checkCount += 1
     }
 
+    if (document.checks.tweetCount.checked) {
+        checkCount += 1
+    }
+
+    if (document.checks.tweetPolarity.checked) {
+        checkCount += 1
+    }
+
     if (checkCount == 3) {
         return false;
     }
@@ -261,6 +334,16 @@ function refreshDataNew() {
     if (document.checks.overweightAndObese.checked) {
         checkCount += 1
         disp.push("overweightAndObese")
+    }
+
+    if (document.checks.tweetCount.checked) {
+        checkCount += 1
+        disp.push("tweetCount")
+    }
+
+    if (document.checks.tweetPolarity.checked) {
+        checkCount += 1
+        disp.push("tweetPolarity")
     }
 
     display = disp;

@@ -21,6 +21,7 @@ DB_PRO_NAME = "processed_tweets"
 DB_RAW_ADDRESS = "http://127.0.0.1:15984"
 DB_PRO_ADDRESS = "http://127.0.0.1:5984"
 GEO_JSON = "web/data/sa2_dump.json"
+MELBOURNE_COORDS = (144.9631, -37.8136)
 
 
 def view_unprocessed_raw(db):
@@ -51,9 +52,13 @@ def tag_tweets(db_raw, db_pro, multipol):
             coords = tuple(raw['coordinates'])
         # Get the midpoint of place.
         elif tweet['place']:
-            coords = average_bounding_box(
-                tweet['place']['bounding_box']['coordinates']
-            )
+            # Don't take midpoint of city, set own coords.
+            if (tweet['place']['name'] == 'Melbourne'):
+                coords = MELBOURNE_COORDS
+            else:
+                coords = average_bounding_box(
+                    tweet['place']['bounding_box']['coordinates']
+                )
 
         # Attempt to process if location exists.
         if coords:
@@ -66,7 +71,9 @@ def tag_tweets(db_raw, db_pro, multipol):
                     sentiment = TweetAnalyzer(tweet).analyzeSentiment()
                     stored_tweet = {
                         '_id': id, 'code': code,
-                        'text': tweet['text'], 'sentiment': sentiment
+                        'text': tweet['text'], 'sentiment': sentiment,
+                        'created_at': tweet['created_at'],
+                        'lang': tweet['lang']
                         }
                     db_pro.save(stored_tweet)
                     break
