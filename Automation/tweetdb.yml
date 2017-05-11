@@ -1,6 +1,6 @@
 ---
 
-- hosts: tweetdb
+- hosts: webserver
   gather_facts: no
   vars_files:
     - vars/variable.yml
@@ -15,14 +15,7 @@
       - tmux
       - libgeos-dev
       - git
-  - name: Copy couchdb installation script
-    copy: src=install-couchdb.sh dest=~/
-  - name: Remove sympolic /usr/lib/erlang/man
-    become: true
-    file: path=/usr/lib/erlang/man state=absent
-  - name: Install and run Couchdb
-    become: true
-    command: sh install-couchdb.sh
+
   - name: Install fiona, shapely, couchdb, textblob, tweepy
     become: true
     command: pip3 install {{item}}
@@ -32,6 +25,27 @@
       - couchdb
       - textblob
       - tweepy
+    # mount external volume to instance
+  - name: Create ext4 file system on the volumn
+    command: sudo mkfs -t ext4 /dev/vdb
+  - name: Make new dir for new Volumn
+    command: sudo mkdir /mnt/data
+  - name: Mount volumn in to data
+    command: sudo mount /dev/vdb /mnt/data
+
+    # install couchdb
+  - name: Copy couchdb installation script
+    copy: src=install-couchdb.sh dest=~/
+  - name: Copy couchdb reinit script
+    copy: src=reinit-couchdb.sh dest=~/
+  - name: Remove sympolic /usr/lib/erlang/man
+    become: true
+    file: path=/usr/lib/erlang/man state=absent
+  - name: Install and run Couchdb
+    become: true
+    command: sh install-couchdb.sh
+
+    # pull the source code
   - name: Copy SSH private key file
     copy: src=team25.key
           dest=~/
@@ -42,21 +56,3 @@
          accept_hostkey=yes
          key_file=team25.key
          update=no
-  - name: Create ext4 file system on the volumn
-    command: sudo mkfs -t ext4 /dev/vdb
-  - name: Make new dir for new Volumn
-    command: sudo mkdir /mnt/data
-  - name: Mount volumn in to data
-    command: sudo mount /dev/vdb /mnt/data
-
-
-#- hosts: tweetdb
-#  become: yes
-#  roles:
-#    - andrewrothstein.couchdb
-#  vars:
-#    couchdb_install_parent_dir: /usr/local
-#    couchdb_parent_srcs_dir: /usr/local/src
-  #tasks:
-  #- name: Deploy configuration file
-  #  template: src=./templates/localini.j dest=/etc/couchdb/local.ini

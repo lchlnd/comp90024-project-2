@@ -8,7 +8,7 @@
     "secret_key":"bb1e1c0798ca4a57872725dc0c8a27c7"
   },
   "key":{
-    "name":"team25.key"
+    "name":"team25"
   },
   "security_groups":[
     {"name":"ssh"},

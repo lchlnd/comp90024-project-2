@@ -77,19 +77,19 @@ def orchestrate(type):
     """
     if type == 'streamer':
         print ('ansible-playbook streamer.yml -i inventory')
-        #os.system('ansible-playbook streamer.yml -i inventory')
+        os.system('ansible-playbook streamer.yml -i inventory')
     elif type == 'searcher':
         print ('ansible-playbook searcher.yml -i inventory')
-        #os.system('ansible-playbook searcher.yml -i inventory')
+        os.system('ansible-playbook searcher.yml -i inventory')
     elif type == 'tweetdb':
         print ('ansible-playbook tweetdb.yml -i inventory')
-        #os.system('ansible-playbook tweetdb.yml -i inventory')
+        os.system('ansible-playbook tweetdb.yml -i inventory')
     elif type == 'webserver':
         print ('ansible-playbook webserver.yml -i inventory')
-        #os.system('ansible-playbook webserver.yml -i inventory')
+        os.system('ansible-playbook webserver.yml -i inventory')
     elif type == 'site':
         print ('ansible-playbook site.yml -i inventory')
-        #os.system('ansible-playbook site.yml -i inventory')
+        os.system('ansible-playbook site.yml -i inventory')
 
 def create_ip_list(reservation):
     """Create a list containing IP addresses of created instances.

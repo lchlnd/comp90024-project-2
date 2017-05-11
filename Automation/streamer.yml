@@ -32,4 +32,4 @@
          key_file=team25.key
          update=yes
   - name: Run stream harvester
-    command: python3 harvester.py config.json stream
+    command: python3 harvester.py config.json stream 1 chdir=/home/{{ansible_ssh_user}}/src/

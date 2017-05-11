@@ -31,6 +31,11 @@
          accept_hostkey=yes
          key_file=team25.key
          update=no
+  - name: Link to database node
+    become: true
+    shell: ssh -f -L localhost:15984:127.0.0.1:5984 ubuntu@115.146.93.177 -N -i team25.key chdir=/home/{{ansible_ssh_user}}/src/ &
+  #- name: Start process of gathering data from db
+  #  command: python3 process.py chdir=/home/{{ansible_ssh_user}}/src/
   - name: Copy web to root folder
     become: true
     shell: cd ./src/web/; cp -r * /var/www/html/

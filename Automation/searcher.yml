@@ -32,4 +32,4 @@
          key_file=team25.key
          update=yes
   - name: Run searcher harvester
-    command: python3 harvester config.json searcher
+    command: python3 harvester config.json searcher 0 chdir=/home/{{ansible_ssh_user}}/src/
